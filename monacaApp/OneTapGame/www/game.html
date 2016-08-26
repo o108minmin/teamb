@@ -1,0 +1,171 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src * data:; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+    <link rel="stylesheet" href="components/loader.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="components/loader.js"></script>
+    <script src="js/ncmb-2.1.2.min.js"></script>
+    <script> 
+        $(function() {
+            //mBaasの初期化
+            var application_key ="eaad77c01d6b2b7271685da5521919ae9e23378d4cd622f6073210d633c1004f";
+            var client_key = "2ccdb560e780847331b41b8cde16b798e2ab3a312f2bcc6b3d2b28eda27e6008";
+            var ncmb = new NCMB(application_key,client_key);
+            var user = ncmb.User.getCurrentUser();
+            
+            //ログインチェック
+            if( user == null){
+                location.href = "./index.html";
+            }else{
+                $("#username").text(user.userName + "(log out)");
+            }
+            
+            //ログアウト
+            $("#username").on("click", function(){
+               ncmb.User.logout()
+               .then(function() {
+                   location.href = "./index.html";
+               });
+            });
+            
+            //mycanvasの設定
+            var canvas = document.getElementById("mycanvas");
+            var ctx = canvas.getContext("2d");
+            
+            var centerX = canvas.width / 2;
+            var centerY = canvas.height / 2;
+            var r; //現在の半径
+            var timerId;
+            var isPlaying = false;
+            var target;
+            var score;
+            var Rank = ncmb.DataStore("Rank");
+            
+            //スタート画面
+            ctx.font = "normal 28px Verdana";
+            ctx.textAlign = "center";
+            ctx.fillStyle = "#FFFFFF";
+            
+            ctx.fillText("Stop at Target!", centerX, centerY); 
+            showRanking();
+            
+            //イベントの設定
+            $("#mycanvas").on("click", function(){
+               if(isPlaying == true){
+                   //ゲームを止める
+                   score = 100 - Math.abs(target - r);
+                   clearTimeout(timerId);
+                   
+                   //スコアの描画
+                   ctx.fillText("You:" + r, centerX, centerY);
+                   ctx.font = "bold 35px Verdana";
+                   ctx.fillText("Score:" + score, centerX, centerY + 50);
+                   ctx.font = "normal 28px Verdana";
+                   
+                   //スコアの保存
+                   var rank = new Rank;
+                   rank.set("username", user.userName);
+                   rank.set("score",score);
+                  
+                  //アクセスコントロールリスト（データへのアクセス権限を設定)
+                   var acl = new ncmb.Acl();
+                   acl.setPublicReadAccess(true);
+                   acl.setUserWriteAccess(user, true);
+                   rank.set("acl" ,acl);
+                   rank.save()
+                   .then(function(){
+                       showRanking();
+                    });
+                   
+               }else{
+                   //ゲームを始める
+                    r = 0;
+                    target = Math.floor(Math.random() * 121) + 80; //80~200までの乱数
+                    drawCircle(); 
+               }
+               isPlaying = !isPlaying; 
+            });
+            
+            //円を描く
+            function drawCircle(){
+                //クリア
+                ctx.fillStyle = "#BBDEFB";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                //円を描く
+                ctx.fillStyle = "#1976D2";
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, r, 0, Math.PI * 2, false);
+                ctx.fill();
+                
+                //ターゲットの描画
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillText("Target:" + target, centerX, centerY - 35 );
+                
+                r++;
+                timerId = setTimeout(function() {
+                  drawCircle();  
+                }, 12);
+            }
+            
+            //ランキング表示
+            function showRanking(){
+                Rank.limit(5)
+                .order("score", true)
+                .fetchAll()
+                .then(function(ary) {
+                    $("ul").empty();
+                    $.each(ary, function(i, rank){
+                        $("<li>").text(
+                            [
+                                i + 1,
+                                "位",
+                                rank.get("username"),
+                                "さん：",
+                                rank.get("score"),
+                                "点"
+                            ].join("")
+                        ).appendTo("ul")
+                    })
+                })
+            }
+        });
+    </script>
+    <style>
+        body{
+            background-color: #BBDEFB;
+            padding-top: 20px;
+            font-family: Verdana, sans-serif;
+            text-align: center;
+        }
+        #mycanvas{
+            margin: 10px auto;
+        }
+        h1 {
+            font-size: 25px;
+            padding-bottom: 7px;
+            border-bottom: 1px solid #000;
+        }
+        ul{
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        ul > li {
+            padding-bottom: 7px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div id="username"></div>
+    <canvas id="mycanvas"></canvas>
+    <h1>Ranking</h1>
+    <ul></ul>
+    <a href="./chart.html">グラフを確認</a>
+    
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src * data:; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+    <link rel="stylesheet" href="components/loader.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="components/loader.js"></script>
+    <script src="js/ncmb-2.1.2.min.js"></script>
+    <script>
+        
+        $(function() {
+            //mBaasの初期化
+            var application_key ="eaad77c01d6b2b7271685da5521919ae9e23378d4cd622f6073210d633c1004f";
+            var client_key = "2ccdb560e780847331b41b8cde16b798e2ab3a312f2bcc6b3d2b28eda27e6008";
+            var ncmb = new NCMB(application_key,client_key);
+            var user = ncmb.User.getCurrentUser();
+            if(user != null){
+                location.href = "./game.html";
+            }
+            //ログイン・新規登録処理
+            $("form").on("submit",function() {
+                var username = $("#username").val();
+                var password = $("#password").val();
+                
+                //ログイン処理
+                ncmb.User.login(username, password)
+                .then(function() {
+                    //ログイン成功
+                    //alert("ログイン成功");
+                    location.href = "./game.html";
+                })
+                .catch(function(){
+                    //ログイン失敗
+                    var user = new ncmb.User({
+                        userName: username,
+                        password: password
+                    });
+                    //新規登録
+                    user.signUpByAccount()
+                    .then(function(){
+                        //ログイン
+                        ncmb.User.login(username, password)
+                        .then(function() {
+                            //ログイン成功
+                            //alert("新規登録＆ログイン成功");
+                            location.href = "./game.html";
+                        })
+                    });
+                });
+                return false;
+            });
+        });
+    </script>
+    <style>
+        body{
+            background-color: #BBDEFB;
+            padding-top: 20px;
+            font-family: Verdana, sans-serif;
+        }
+        form{
+        padding: 30px auto;
+        text-align: center;
+        }
+        input{
+            border-radius: 5px;
+            padding: 7px;
+            margin-bottom: 10px;
+            width: 200px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <form>
+        <input type="text" id="username" placeholder="User name"/>
+        <input type="password" id="password" placeholder="Password"/>
+        <input type="submit" value="Register/Login"/>
+    </form>
+
+</body>
+</html>

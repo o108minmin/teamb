@@ -1,0 +1,86 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src * data:; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+    <link rel="stylesheet" href="components/loader.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="components/loader.js"></script>
+    <script src="js/ncmb-2.1.2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+    <script> 
+        var data = {
+                labels: [],
+                datasets: [
+                    {
+                        label: "Prime and Fibonacci",
+                        fillColor: "rgba(251,180,196,0.2)",
+                        strokeColor: "rgba(254,230,170,1)",
+                        pointColor: "rgba(254,230,170,1)",
+                        pointStrokeColor: "#fff",
+                        pointHighlightFill: "#fff",
+                        pointHighlightStroke: "rgba(220,220,220,1)",
+                        data: []
+                }
+            ]
+        };
+        
+        function displayLineChart() {       
+            //mBaasの初期化
+            var application_key ="eaad77c01d6b2b7271685da5521919ae9e23378d4cd622f6073210d633c1004f";
+            var client_key = "2ccdb560e780847331b41b8cde16b798e2ab3a312f2bcc6b3d2b28eda27e6008";
+            var ncmb = new NCMB(application_key,client_key);
+
+            //プレイヤーのスコアを降順で取得
+            var Rank = ncmb.DataStore("Rank");
+            var limit_size = 10;
+            Rank.order("createDate", true)
+                .order("score" , true)
+                .limit(limit_size)
+                .fetchAll()
+                .then(function(results){
+                    console.log("Successfully retrieved " + results.length + " scores.");
+                    for (var i = 0; i < results.length; i++) {
+                        var object = results[(limit_size-1) -i];
+                        data.labels[i] = i;
+                        data.datasets[0].data[i] =  object.score;
+                    }
+                    var ctx = document.getElementById("lineChart").getContext("2d");
+                    var options = { };
+                    var lineChart = new Chart(ctx).Line(data, {
+                        scaleShowVerticalLines: false,
+                        scaleShowHorizontalLines: false,
+                        scaleOverride : true,
+                        scaleSteps : 15,
+                        scaleStepWidth : 10,
+                        scaleStartValue : -20, 
+                    });
+                })
+                .catch(function(err){
+                    console.log(err);
+                });
+        }
+       
+    </script>
+    <style>
+        body{
+            padding-top: 20px;
+            font-family: Verdana, sans-serif;
+            text-align: center;
+        }
+        #mycanvas{
+            padding-top: 20px;
+            padding-bottom: 20px;
+            margin: 10px auto;
+        }
+        
+    </style>
+</head>
+<body onload="displayLineChart();">
+    <div class="box">
+        <canvas id="lineChart" height="300" width="480"></canvas>
+    </div>
+    <a href="./game.html">戻る</a>
+</body>
+</html>
