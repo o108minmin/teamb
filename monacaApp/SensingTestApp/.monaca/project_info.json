@@ -1,0 +1,22 @@
+{
+    "plugins": [
+        "mobi.monaca.plugins.Monaca"
+    ],
+    "framework_version": "3.5",
+    "xcode_version": "6",
+    "cordova_version": "5.2",
+    "plugin_settings": [],
+    "external_plugins": [
+        "cordova-plugin-whitelist@1.0.0",
+        "cordova-plugin-splashscreen@2.1.0",
+        "cordova-plugin-geolocation@1.0.1",
+        "cordova-plugin-device-motion@1.1.1"
+    ],
+    "title-ja": "ジャイロセンサーとGPS機能",
+    "title-en": "",
+    "description-ja": "",
+    "description-en": "",
+    "category": "User Template",
+    "platform": [],
+    "name": "generated-1472133853-57bc8b69fd173479130fe572"
+}
